@@ -1,0 +1,64 @@
+#!/bin/bash
+
+KOMEA_LOCATION="<%= @base_location %>"
+NEXUS_URL="<%= @nexus_url %>"
+NEXUS_LOGIN=$1
+NEXUS_PASSWORD=$2
+NEXUS_REPOSITORY="<%= @nexus_repository %>"
+NEXUS_THIRD_PARTIES_REPO="<%= @nexus_third_parties_repository %>"
+VERSION="<%= @version %>"
+JENKINS_VERSION="<%= @jenkins_version %>"
+
+CONNECTORS=("<%= @connectors.join('" "') %>")
+
+CONNECTORS_PATH="$KOMEA_LOCATION/connectors"
+JENKINS_GROUP_ID="org/komea/"
+CONNECTORS_GROUP_ID="org/komea/dashboard"
+
+retrieveFromNexus() {
+  OUTPUT=$1
+  REPO=$2
+  GROUP_ID=$3
+  ARTIFACT=$4
+  ARTIFACT_VERSION=$5
+  EXTENSION=$6
+
+  curl -X GET -u $NEXUS_LOGIN:$NEXUS_PASSWORD -o "$OUTPUT.md5" "$NEXUS_URL/content/repositories/$REPO/$GROUP_ID/$ARTIFACT/$ARTIFACT_VERSION/$ARTIFACT-$ARTIFACT_VERSION.$EXTENSION.md5"
+  OUTPUT_MD5=`md5sum $OUTPUT | awk '{ print $1 }'`
+  REMOTE_MD5=`cat $OUTPUT.md5`
+
+  if [ "$OUTPUT_MD5" =  "$REMOTE_MD5" ]
+  then
+    echo "$OUTPUT is already the latest version!"
+  else
+    echo "$OUTPUT_MD5 != $REMOTE_MD5"
+    curl -X GET -u $NEXUS_LOGIN:$NEXUS_PASSWORD -o $OUTPUT  "$NEXUS_URL/content/repositories/$REPO/$GROUP_ID/$ARTIFACT/$ARTIFACT_VERSION/$ARTIFACT-$ARTIFACT_VERSION.$EXTENSION"
+  fi
+}
+
+# Deploy Jenkins
+JENKINS_ZIP="$KOMEA_LOCATION/komea-jenkins.zip"
+BEFORE_MD5=`md5sum $JENKINS_ZIP | awk '{ print $1 }'`
+retrieveFromNexus $JENKINS_ZIP $NEXUS_THIRD_PARTIES_REPO $JENKINS_GROUP_ID "komea-jenkins" $JENKINS_VERSION "zip"
+AFTER_MD5=`md5sum $JENKINS_ZIP | awk '{ print $1 }'`
+if [ "$BEFORE_MD5" =  "$AFTER_MD5" ]
+then
+  echo "$JENKINS_ZIP has not changed."
+else
+  unzip -o $JENKINS_ZIP -d $KOMEA_LOCATION
+fi
+
+# Deploy Connectors
+for connector in "${CONNECTORS[@]}"
+do
+  connectorPath="$CONNECTORS_PATH/$connector.zip"
+  BEFORE_MD5=`md5sum $connectorPath | awk '{ print $1 }'`
+  retrieveFromNexus $connectorPath $NEXUS_REPOSITORY $CONNECTORS_GROUP_ID $connector $VERSION "zip"
+  AFTER_MD5=`md5sum $connectorPath | awk '{ print $1 }'`
+  if [ "$BEFORE_MD5" =  "$AFTER_MD5" ]
+  then
+    echo "$connectorPath has not changed."
+  else
+    unzip -o $connectorPath -d $CONNECTORS_PATH
+  fi
+done
