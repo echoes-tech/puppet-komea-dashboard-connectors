@@ -113,9 +113,9 @@ Specifies the list of connectors that will be installed. Valid options: array. D
 
 Debian family OSes are officially supported. Tested and built on Debian.
 
-##Development
+## Development
 
-[Echoes Technologies](https://www.echoes-tech.com) modules on the Puppet Forge are open projects, and community contributions are essential for keeping them great.
+[Echoes Technologies](https://echoes.fr) modules on the Puppet Forge are open projects, and community contributions are essential for keeping them great.
 
 ## Contributors
 
