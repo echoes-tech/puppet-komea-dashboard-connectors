@@ -1,12 +1,12 @@
 {
   "name": "echoes-komea_dashboard_connectors",
-  "version": "4.1",
+  "version": "0.4.1",
   "author": "Echoes Technologies",
   "summary": "Puppet module to manage Komea Dashboard's connectors installation and configuration",
   "license": "Apache-2.0",
-  "source": "",
-  "project_page": "",
-  "issues_url": "",
+  "source": "https://github.com/echoes-tech/puppet-komea-dashboard-connectors",
+  "project_page": "https://github.com/echoes-tech/puppet-komea-dashboard-connectors",
+  "issues_url": "https://github.com/echoes-tech/puppet-komea-dashboard-connectors/issues",
   "tags": [
     "git"
   ],
